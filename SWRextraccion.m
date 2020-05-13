@@ -16,20 +16,27 @@ time (end) = [];
 Ripples    = zeros (size(DATA_CRF,1),size(DATA_CRF,2));         % Preallocate
 for i = 1:size(DATA_CRF,2)
     Ripples(:,i)     = filtfilt(b1,a1,DATA_CRF(:,i));
-    theta(:,i)  = filtfilt(b2,a2,DATA_CRF(:,i));
-    RMS3(i)          = 3*rms (Ripples(:,i));                    % Umbral para detección de ripples
+    RMS3(i)          = 3*rms (Ripples(:,i));                    % Thereshold 
     [pks{i},locs{i}] = findpeaks((abs(Ripples(:,i))),time,'MinPeakDistance',0.05,'MinPeakHeight', ...
         RMS3(i)); 
 end                                   % Ripples
+%%  2. Extracting Ripples
+for i = 1:size(DATA_CRF,2)
+    temporal_locs = locs{:,i};
+    for j = 1:size (temporal_locs,2)
+     Presuntos{i,j,:} = Ripples(abs(temporal_locs(1,j)*1000-49):temporal_locs(1,j)*1000+50,i);   
+    end
+    clear temporal_locs
+end                                   % 
 
-%% 2. Quantifiying Ripples
+%% 3. Quantifiying Ripples
 % Frequency %%%
 for i = 1: size(DATA_CRF,2)
     SWR_HZ_Baseline(i) = size(find(locs{1,i}<900),2)/900; 
 end %Baseline
 for i = 1: size(DATA_CRF,2)
     SWR_HZ_After(i) = size(find(locs{1,i}>960 & locs{1,i}<2700) ,2)/900; 
-end %Postinyección
+end %PostinyecciÃ³n
 
 %%% Amplitude  %%%
 for i = 1: size(DATA_CRF,2)
@@ -47,7 +54,7 @@ for i = 1: size(DATA_CRF,2)
     end 
     SWR_uV_After(i) = mean(rms_presunt_after(i,:)); 
     clear temp_locs 
-end %Postinyección
+end %PostinyecciÃ³n
 %% Spectrogram
 Sujeto = 2;
 limits = [80 180];
